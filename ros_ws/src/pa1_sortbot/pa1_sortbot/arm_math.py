@@ -4,7 +4,7 @@ from math import acos, atan2, cos, hypot, sin
 
 ARM_BASE_X = 0.04
 ARM_BASE_Z = 0.07
-BASE_LINK_WORLD_Z = 0.27
+BASE_LINK_WORLD_Z = 0.19
 LINK_LENGTHS = (0.22, 0.22)
 TOOL_OFFSET = 0.04
 GRIPPER_CLOSED = 0.012

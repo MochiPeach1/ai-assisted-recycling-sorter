@@ -35,6 +35,7 @@ ARM_JOINTS = (
 )
 ITEM_CENTER_Z = 0.07
 BIN_ITEM_CENTER_Z = 0.12
+GRIPPER_BOX_CENTER_OFFSET_Z = 0.07
 CARRY_TARGET = (0.25, 0.32)
 
 
@@ -161,7 +162,7 @@ class SorterNode(Node):
                 self.move_arm_to_world(
                     item_x,
                     item_y,
-                    ITEM_CENTER_Z + 0.09,
+                    ITEM_CENTER_Z + GRIPPER_BOX_CENTER_OFFSET_Z + 0.09,
                     GRIPPER_OPEN,
                     "lower_arm",
                     1.8,
@@ -175,7 +176,7 @@ class SorterNode(Node):
             self.move_arm_to_world(
                 item_x,
                 item_y,
-                ITEM_CENTER_Z,
+                ITEM_CENTER_Z + GRIPPER_BOX_CENTER_OFFSET_Z,
                 GRIPPER_OPEN,
                 "close_gripper",
                 1.5,
@@ -255,7 +256,7 @@ class SorterNode(Node):
             self.move_arm_to_world(
                 bin_x,
                 bin_y,
-                BIN_ITEM_CENTER_Z,
+                BIN_ITEM_CENTER_Z + GRIPPER_BOX_CENTER_OFFSET_Z,
                 GRIPPER_CLOSED,
                 "release_package",
                 1.8,

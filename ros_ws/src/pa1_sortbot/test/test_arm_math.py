@@ -33,13 +33,13 @@ class ArmKinematicsTests(unittest.TestCase):
         self.assertAlmostEqual(tool_angle, 0.0, places=6)
 
     def test_reaches_package_pickup_pose(self):
-        self.assert_target_reached(0.30, -0.20)
+        self.assert_target_reached(0.30, -0.05)
 
     def test_reaches_pregrasp_pose(self):
-        self.assert_target_reached(0.30, -0.11)
+        self.assert_target_reached(0.30, 0.04)
 
     def test_reaches_bin_drop_pose(self):
-        self.assert_target_reached(0.43, -0.15)
+        self.assert_target_reached(0.43, 0.0)
 
     def test_reaches_stowed_carry_pose(self):
         self.assert_target_reached(0.25, 0.32)

@@ -79,6 +79,7 @@
       <collision name="mount_collision"><geometry><cylinder><radius>0.065</radius><length>0.10</length></cylinder></geometry></collision>
     </link>
     <link name="arm_upper_link">
+      <gravity>false</gravity>
       <pose relative_to="arm_mount_link">0 0 0 0 0 0</pose>
       <inertial><mass>0.18</mass><inertia><ixx>0.0007</ixx><iyy>0.0008</iyy><izz>0.0007</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
       <visual name="upper_visual">
@@ -89,6 +90,7 @@
       <collision name="upper_collision"><pose>0.11 0 0 0 1.5707963 0</pose><geometry><cylinder><radius>0.035</radius><length>0.22</length></cylinder></geometry></collision>
     </link>
     <link name="arm_forearm_link">
+      <gravity>false</gravity>
       <pose relative_to="arm_upper_link">0.22 0 0 0 0 0</pose>
       <inertial><mass>0.15</mass><inertia><ixx>0.0005</ixx><iyy>0.0006</iyy><izz>0.0005</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
       <visual name="forearm_visual">
@@ -99,6 +101,7 @@
       <collision name="forearm_collision"><pose>0.11 0 0 0 1.5707963 0</pose><geometry><cylinder><radius>0.028</radius><length>0.22</length></cylinder></geometry></collision>
     </link>
     <link name="arm_wrist_link">
+      <gravity>false</gravity>
       <pose relative_to="arm_forearm_link">0.22 0 0 0 0 0</pose>
       <inertial><mass>0.08</mass><inertia><ixx>0.0002</ixx><iyy>0.0002</iyy><izz>0.0002</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
       <visual name="palm_visual">
@@ -109,12 +112,14 @@
       <collision name="palm_collision"><pose>0.04 0 0.035 0 0 0</pose><geometry><box><size>0.12 0.20 0.04</size></box></geometry></collision>
     </link>
     <link name="left_gripper_finger">
+      <gravity>false</gravity>
       <pose relative_to="arm_wrist_link">0.04 0.09 0 0 0 0</pose>
       <inertial><mass>0.04</mass><inertia><ixx>0.00008</ixx><iyy>0.00008</iyy><izz>0.00002</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
       <visual name="finger_visual"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><material><ambient>0.20 0.23 0.26 1</ambient><diffuse>0.25 0.28 0.31 1</diffuse></material></visual>
       <collision name="finger_collision"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><surface><friction><ode><mu>4.0</mu><mu2>4.0</mu2></ode></friction></surface></collision>
     </link>
     <link name="right_gripper_finger">
+      <gravity>false</gravity>
       <pose relative_to="arm_wrist_link">0.04 -0.09 0 0 0 0</pose>
       <inertial><mass>0.04</mass><inertia><ixx>0.00008</ixx><iyy>0.00008</iyy><izz>0.00002</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
       <visual name="finger_visual"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><material><ambient>0.20 0.23 0.26 1</ambient><diffuse>0.25 0.28 0.31 1</diffuse></material></visual>
