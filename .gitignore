@@ -1,0 +1,10 @@
+ros_ws/build/
+ros_ws/install/
+ros_ws/log/
+**/build/
+**/dist/
+*.egg-info/
+*.env
+__pycache__/
+*.py[cod]
+.pytest_cache/

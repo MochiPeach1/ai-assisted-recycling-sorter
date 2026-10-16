@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<sdf version="1.6">
+  <world name="sorting_lab">
+    <include><uri>model://ground_plane</uri></include>
+    <include><uri>model://sun</uri></include>
+    <physics name="default_physics" type="ode">
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>500</real_time_update_rate>
+    </physics>
+    <plugin name="gazebo_ros_state" filename="libgazebo_ros_state.so">
+      <ros><namespace>/gazebo</namespace></ros>
+    </plugin>
+    <model name="paper_bin">
+      <static>true</static><pose>1.25 0.72 0.025 0 0 0</pose>
+      <link name="body"><collision name="collision"><geometry><box><size>0.38 0.38 0.05</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.38 0.38 0.05</size></box></geometry><material><ambient>0.58 0.49 0.12 1</ambient><diffuse>0.91 0.75 0.20 1</diffuse></material></visual></link>
+    </model>
+    <model name="plastic_bin">
+      <static>true</static><pose>1.25 0 0.025 0 0 0</pose>
+      <link name="body"><collision name="collision"><geometry><box><size>0.38 0.38 0.05</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.38 0.38 0.05</size></box></geometry><material><ambient>0.08 0.22 0.58 1</ambient><diffuse>0.13 0.38 0.94 1</diffuse></material></visual></link>
+    </model>
+    <model name="metal_bin">
+      <static>true</static><pose>1.25 -0.72 0.025 0 0 0</pose>
+      <link name="body"><collision name="collision"><geometry><box><size>0.38 0.38 0.05</size></box></geometry></collision><visual name="visual"><geometry><box><size>0.38 0.38 0.05</size></box></geometry><material><ambient>0.54 0.13 0.12 1</ambient><diffuse>0.87 0.18 0.21 1</diffuse></material></visual></link>
+    </model>
+    <model name="sample_1">
+      <static>true</static><pose>-0.72 -0.65 0.07 0 0 0</pose><link name="body"><visual name="visual"><geometry><box><size>0.14 0.14 0.14</size></box></geometry><material><ambient>0.08 0.22 0.58 1</ambient><diffuse>0.13 0.38 0.94 1</diffuse></material></visual></link>
+    </model>
+    <model name="sample_2">
+      <static>true</static><pose>0 -0.65 0.07 0 0 0</pose><link name="body"><visual name="visual"><geometry><box><size>0.14 0.14 0.14</size></box></geometry><material><ambient>0.58 0.49 0.12 1</ambient><diffuse>0.91 0.75 0.20 1</diffuse></material></visual></link>
+    </model>
+    <model name="sample_3">
+      <static>true</static><pose>0.72 -0.65 0.07 0 0 0</pose><link name="body"><visual name="visual"><geometry><box><size>0.14 0.14 0.14</size></box></geometry><material><ambient>0.54 0.13 0.12 1</ambient><diffuse>0.87 0.18 0.21 1</diffuse></material></visual></link>
+    </model>
+  </world>
+</sdf>

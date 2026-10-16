@@ -1,0 +1,19 @@
+services:
+  sim:
+    image: airobotbook/ros2-desktop-ai-robot-book-humble:latest
+    container_name: pa1-sortbot-sim
+    ports:
+      - "6080:80"
+      - "8888:8888"
+      - "9876:9876"
+      - "9090:9090"
+    environment:
+      WANDB_MODE: offline
+      DISPLAY: ":0"
+      XAUTHORITY: /home/ubuntu/.Xauthority
+      GAZEBO_MODEL_PATH: /workspace/ros_ws/src/pa1_sortbot/models
+    volumes:
+      - .:/workspace/project
+      - ./ros_ws:/workspace/ros_ws
+    stdin_open: true
+    tty: true
