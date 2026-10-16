@@ -33,13 +33,13 @@ class ArmKinematicsTests(unittest.TestCase):
         self.assertAlmostEqual(tool_angle, 0.0, places=6)
 
     def test_reaches_package_pickup_pose(self):
-        self.assert_target_reached(0.30, -0.05)
+        self.assert_target_reached(0.30, -0.075)
 
     def test_reaches_pregrasp_pose(self):
-        self.assert_target_reached(0.30, 0.04)
+        self.assert_target_reached(0.30, 0.015)
 
     def test_reaches_bin_drop_pose(self):
-        self.assert_target_reached(0.43, 0.0)
+        self.assert_target_reached(0.43, -0.025)
 
     def test_reaches_stowed_carry_pose(self):
         self.assert_target_reached(0.25, 0.32)
@@ -57,6 +57,7 @@ class ArmKinematicsTests(unittest.TestCase):
         closed = make_arm_positions(0.30, -0.20, GRIPPER_CLOSED)
         self.assertEqual(opened[3:], (GRIPPER_OPEN, GRIPPER_OPEN))
         self.assertEqual(closed[3:], (GRIPPER_CLOSED, GRIPPER_CLOSED))
+        self.assertLessEqual(GRIPPER_CLOSED, 0.05)
 
 
 if __name__ == "__main__":

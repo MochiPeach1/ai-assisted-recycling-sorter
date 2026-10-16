@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!-- Fixed overview camera used only to record the demonstration video. -->
+<sdf version="1.6">
+  <model name="demo_overview_camera">
+    <static>true</static>
+    <pose>0.0 -2.55 2.05 0 0.68 1.5707963</pose>
+    <link name="link">
+      <sensor name="overview_camera" type="camera">
+        <update_rate>15</update_rate>
+        <camera>
+          <horizontal_fov>1.25</horizontal_fov>
+          <image><width>960</width><height>540</height><format>R8G8B8</format></image>
+          <clip><near>0.05</near><far>20</far></clip>
+        </camera>
+        <plugin name="overview_camera_controller" filename="libgazebo_ros_camera.so">
+          <ros><namespace>/demo</namespace></ros>
+          <camera_name>overview</camera_name>
+          <frame_name>overview_camera</frame_name>
+        </plugin>
+      </sensor>
+    </link>
+  </model>
+</sdf>

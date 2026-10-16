@@ -106,24 +106,24 @@
       <inertial><mass>0.08</mass><inertia><ixx>0.0002</ixx><iyy>0.0002</iyy><izz>0.0002</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
       <visual name="palm_visual">
         <pose>0.04 0 0.035 0 0 0</pose>
-        <geometry><box><size>0.12 0.20 0.04</size></box></geometry>
+        <geometry><box><size>0.12 0.10 0.04</size></box></geometry>
         <material><ambient>0.16 0.18 0.20 1</ambient><diffuse>0.20 0.23 0.26 1</diffuse></material>
       </visual>
-      <collision name="palm_collision"><pose>0.04 0 0.035 0 0 0</pose><geometry><box><size>0.12 0.20 0.04</size></box></geometry></collision>
+      <collision name="palm_collision"><pose>0.04 0 0.035 0 0 0</pose><geometry><box><size>0.12 0.10 0.04</size></box></geometry></collision>
     </link>
     <link name="left_gripper_finger">
       <gravity>false</gravity>
-      <pose relative_to="arm_wrist_link">0.04 0.09 0 0 0 0</pose>
+      <pose relative_to="arm_wrist_link">0.04 0.11 0 0 0 0</pose>
       <inertial><mass>0.04</mass><inertia><ixx>0.00008</ixx><iyy>0.00008</iyy><izz>0.00002</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
-      <visual name="finger_visual"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><material><ambient>0.20 0.23 0.26 1</ambient><diffuse>0.25 0.28 0.31 1</diffuse></material></visual>
-      <collision name="finger_collision"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><surface><friction><ode><mu>4.0</mu><mu2>4.0</mu2></ode></friction></surface></collision>
+      <visual name="finger_visual"><geometry><box><size>0.04 0.02 0.14</size></box></geometry><material><ambient>0.20 0.23 0.26 1</ambient><diffuse>0.25 0.28 0.31 1</diffuse></material></visual>
+      <collision name="finger_collision"><geometry><box><size>0.04 0.02 0.14</size></box></geometry><surface><friction><ode><mu>4.0</mu><mu2>4.0</mu2></ode></friction></surface></collision>
     </link>
     <link name="right_gripper_finger">
       <gravity>false</gravity>
-      <pose relative_to="arm_wrist_link">0.04 -0.09 0 0 0 0</pose>
+      <pose relative_to="arm_wrist_link">0.04 -0.11 0 0 0 0</pose>
       <inertial><mass>0.04</mass><inertia><ixx>0.00008</ixx><iyy>0.00008</iyy><izz>0.00002</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia></inertial>
-      <visual name="finger_visual"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><material><ambient>0.20 0.23 0.26 1</ambient><diffuse>0.25 0.28 0.31 1</diffuse></material></visual>
-      <collision name="finger_collision"><geometry><box><size>0.08 0.02 0.14</size></box></geometry><surface><friction><ode><mu>4.0</mu><mu2>4.0</mu2></ode></friction></surface></collision>
+      <visual name="finger_visual"><geometry><box><size>0.04 0.02 0.14</size></box></geometry><material><ambient>0.20 0.23 0.26 1</ambient><diffuse>0.25 0.28 0.31 1</diffuse></material></visual>
+      <collision name="finger_collision"><geometry><box><size>0.04 0.02 0.14</size></box></geometry><surface><friction><ode><mu>4.0</mu><mu2>4.0</mu2></ode></friction></surface></collision>
     </link>
     <joint name="left_wheel_joint" type="revolute">
       <pose relative_to="base_link">0 0.18 -0.11 0 0 0</pose>
@@ -161,16 +161,16 @@
       <axis><xyz>0 1 0</xyz><limit><lower>-2.9</lower><upper>2.9</upper><effort>10</effort><velocity>2.5</velocity></limit></axis>
     </joint>
     <joint name="left_gripper_joint" type="prismatic">
-      <pose relative_to="arm_wrist_link">0.04 0.09 0 0 0 0</pose>
+      <pose relative_to="arm_wrist_link">0.04 0.11 0 0 0 0</pose>
       <parent>arm_wrist_link</parent><child>left_gripper_finger</child>
-      <axis><xyz>0 -1 0</xyz><limit><lower>0</lower><upper>0.025</upper><effort>8</effort><velocity>0.2</velocity></limit>
+      <axis><xyz>0 -1 0</xyz><limit><lower>0</lower><upper>0.05</upper><effort>8</effort><velocity>0.2</velocity></limit>
         <dynamics><damping>0.2</damping><friction>0.05</friction></dynamics>
       </axis>
     </joint>
     <joint name="right_gripper_joint" type="prismatic">
-      <pose relative_to="arm_wrist_link">0.04 -0.09 0 0 0 0</pose>
+      <pose relative_to="arm_wrist_link">0.04 -0.11 0 0 0 0</pose>
       <parent>arm_wrist_link</parent><child>right_gripper_finger</child>
-      <axis><xyz>0 1 0</xyz><limit><lower>0</lower><upper>0.025</upper><effort>8</effort><velocity>0.2</velocity></limit>
+      <axis><xyz>0 1 0</xyz><limit><lower>0</lower><upper>0.05</upper><effort>8</effort><velocity>0.2</velocity></limit>
         <dynamics><damping>0.2</damping><friction>0.05</friction></dynamics>
       </axis>
     </joint>

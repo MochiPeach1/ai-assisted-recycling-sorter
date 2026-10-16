@@ -7,7 +7,8 @@ from pathlib import Path
 import rclpy
 from ament_index_python.packages import get_package_share_directory
 from builtin_interfaces.msg import Duration
-from gazebo_msgs.msg import ModelStates
+from gazebo_msgs.msg import EntityState, LinkStates, ModelStates
+from gazebo_msgs.srv import SetEntityState
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from rclpy.executors import ExternalShutdownException
@@ -35,8 +36,37 @@ ARM_JOINTS = (
 )
 ITEM_CENTER_Z = 0.07
 BIN_ITEM_CENTER_Z = 0.12
-GRIPPER_BOX_CENTER_OFFSET_Z = 0.07
+GRIPPER_BOX_CENTER_OFFSET_Z = 0.065
 CARRY_TARGET = (0.25, 0.32)
+# Travel lane in front of the packages so the base never sweeps through them.
+ITEM_LANE_Y = -0.25
+WRIST_LINK = "sortbot::arm_wrist_link"
+# Expected package center in the wrist frame when it sits between the fingers.
+GRASP_POINT_IN_WRIST = (0.04, 0.0, -GRIPPER_BOX_CENTER_OFFSET_Z)
+GRASP_TOLERANCE = (0.05, 0.04, 0.05)
+
+
+def quaternion_multiply(a, b):
+    ax, ay, az, aw = a
+    bx, by, bz, bw = b
+    return (
+        aw * bx + ax * bw + ay * bz - az * by,
+        aw * by - ax * bz + ay * bw + az * bx,
+        aw * bz + ax * by - ay * bx + az * bw,
+        aw * bw - ax * bx - ay * by - az * bz,
+    )
+
+
+def quaternion_conjugate(q):
+    return (-q[0], -q[1], -q[2], q[3])
+
+
+def rotate_vector(q, vector):
+    rotated = quaternion_multiply(
+        quaternion_multiply(q, (vector[0], vector[1], vector[2], 0.0)),
+        quaternion_conjugate(q),
+    )
+    return rotated[:3]
 
 
 class SorterNode(Node):
@@ -52,8 +82,16 @@ class SorterNode(Node):
         self.status_publisher = self.create_publisher(String, "/sortbot/sort_status", 10)
         self.create_subscription(Odometry, "/sortbot/odom", self.on_odometry, 10)
         self.create_subscription(ModelStates, "/gazebo/model_states", self.on_model_states, 10)
+        self.create_subscription(LinkStates, "/gazebo/link_states", self.on_link_states, 10)
         self.create_subscription(Image, "/sortbot/camera/image_raw", self.on_image, 5)
+        self.entity_state_client = self.create_client(SetEntityState, "/gazebo/set_entity_state")
         self.create_timer(0.1, self.tick)
+        self.create_timer(0.02, self.update_held_package)
+        self.wrist_pose = None
+        self.full_model_poses = {}
+        self.held_package = None
+        self.held_offset = None
+        self.held_orientation = None
         self.pose = None
         self.item_index = 0
         self.phase = "stow_arm"
@@ -66,7 +104,9 @@ class SorterNode(Node):
         self.model_poses = {}
         self.phase_started = self.get_clock().now()
         self.last_status = None
-        self.get_logger().info("Mobile-arm sorter ready: physical grasping with a parallel gripper.")
+        self.get_logger().info(
+            "Mobile-arm sorter ready: parallel gripper with a pose-verified grasp lock."
+        )
         self.publish_status("Starting the sorting mission")
 
     def on_odometry(self, message):
@@ -85,6 +125,27 @@ class SorterNode(Node):
             name: (pose.position.x, pose.position.y, pose.position.z)
             for name, pose in zip(message.name, message.pose)
         }
+        self.full_model_poses = {
+            name: (
+                (pose.position.x, pose.position.y, pose.position.z),
+                (pose.orientation.x, pose.orientation.y, pose.orientation.z, pose.orientation.w),
+            )
+            for name, pose in zip(message.name, message.pose)
+        }
+
+    def on_link_states(self, message):
+        for name, pose in zip(message.name, message.pose):
+            if name == WRIST_LINK:
+                self.wrist_pose = (
+                    (pose.position.x, pose.position.y, pose.position.z),
+                    (
+                        pose.orientation.x,
+                        pose.orientation.y,
+                        pose.orientation.z,
+                        pose.orientation.w,
+                    ),
+                )
+                return
 
     def on_image(self, image):
         try:
@@ -112,12 +173,13 @@ class SorterNode(Node):
             self.publish_velocity(0.0, 0.0)
             if self.get_clock().now().nanoseconds >= self.arm_deadline_ns:
                 self.phase = self.arm_next_phase
-                if self.phase in ("verify_grasp", "verify_placement"):
+                if self.phase in ("verify_grasp", "verify_placement", "secure_package"):
                     self.phase_started = self.get_clock().now()
                 self.publish_arm_hold()
             return
 
         if self.phase in (
+            "approach_lane",
             "approach_item",
             "align_item",
             "classify_item",
@@ -134,22 +196,28 @@ class SorterNode(Node):
             self.move_arm_to_base(
                 *CARRY_TARGET,
                 GRIPPER_OPEN,
-                "approach_item",
+                "approach_lane",
                 1.8,
             )
             return
 
+        if self.phase == "approach_lane":
+            _, _, _, goal_x, _ = ITEMS[self.item_index]
+            self.navigate_to(goal_x, ITEM_LANE_Y, 0.04)
+            if self.reached(goal_x, ITEM_LANE_Y, 0.04):
+                self.phase = "approach_item"
+            return
+
         if self.phase == "approach_item":
             _, _, _, goal_x, goal_y = ITEMS[self.item_index]
-            self.navigate_to(goal_x, goal_y)
-            if self.reached(goal_x, goal_y):
+            self.navigate_to(goal_x, goal_y, 0.005)
+            if self.reached(goal_x, goal_y, 0.005):
                 self.phase = "align_item"
                 self.set_status(f"Aligning camera with package {self.item_index + 1}")
             return
 
         if self.phase == "align_item":
-            _, item_x, item_y, _, _ = ITEMS[self.item_index]
-            self.align_to(item_x, item_y, "classify_item")
+            self.align_to_heading(0.0, "classify_item", 0.01)
             return
 
         if self.phase == "classify_item":
@@ -193,10 +261,23 @@ class SorterNode(Node):
                     GRIPPER_CLOSED,
                     GRIPPER_CLOSED,
                 ),
-                "lift_package",
-                0.8,
+                "secure_package",
+                1.0,
             )
             self.set_status(f"Closing the gripper around package {self.item_index + 1}")
+            return
+
+        if self.phase == "secure_package":
+            secured = self.secure_package()
+            if secured is True:
+                self.phase = "lift_package"
+                self.set_status(f"Package {self.item_index + 1} is between the closed fingers")
+            elif secured is False:
+                self.fail(
+                    f"Package {self.item_index + 1} was not between the gripper fingers."
+                )
+            else:
+                self.wait_for_model_pose("Waiting for gripper and package poses")
             return
 
         if self.phase == "lift_package":
@@ -264,6 +345,7 @@ class SorterNode(Node):
             return
 
         if self.phase == "release_package":
+            self.held_package = None
             self.command_arm(
                 (
                     self.arm_positions[0],
@@ -310,7 +392,7 @@ class SorterNode(Node):
                 self.publish_status("All packages sorted successfully")
                 self.get_logger().info("Mission complete: all packages were grasped and placed.")
             else:
-                self.phase = "approach_item"
+                self.phase = "approach_lane"
                 self.set_status(f"Moving to package {self.item_index + 1}")
 
     def move_arm_to_world(self, world_x, world_y, world_z, gripper, next_phase, seconds):
@@ -367,9 +449,10 @@ class SorterNode(Node):
                 current + fraction * (goal - current)
                 for current, goal in zip(self.arm_positions, target)
             ]
+            elapsed_ns = step * interval_ns
             point.time_from_start = Duration(
-                sec=interval_ns // 1_000_000_000,
-                nanosec=interval_ns % 1_000_000_000,
+                sec=elapsed_ns // 1_000_000_000,
+                nanosec=elapsed_ns % 1_000_000_000,
             )
             trajectory.points.append(point)
 
@@ -392,6 +475,60 @@ class SorterNode(Node):
         point.positions = list(self.arm_positions)
         trajectory.points.append(point)
         self.arm_publisher.publish(trajectory)
+
+    def secure_package(self):
+        """Lock the package to the wrist once it is verified between the closed fingers.
+
+        The Gazebo joint-pose trajectory plugin positions the fingers kinematically, so
+        they produce no squeezing force. After checking the real package pose against
+        the finger geometry, the node keeps the package at that wrist-relative pose
+        through /gazebo/set_entity_state until the gripper opens.
+        """
+        name = ITEMS[self.item_index][0]
+        package = self.full_model_poses.get(name)
+        if package is None or self.wrist_pose is None:
+            return None
+        if not self.entity_state_client.service_is_ready():
+            self.fail("Gazebo /gazebo/set_entity_state service is unavailable.")
+            return False
+        wrist_position, wrist_orientation = self.wrist_pose
+        package_position, package_orientation = package
+        inverse_wrist = quaternion_conjugate(wrist_orientation)
+        offset = rotate_vector(
+            inverse_wrist,
+            tuple(p - w for p, w in zip(package_position, wrist_position)),
+        )
+        errors = [abs(o - e) for o, e in zip(offset, GRASP_POINT_IN_WRIST)]
+        self.get_logger().info(
+            "Package offset in wrist frame: "
+            + ", ".join(f"{value:.3f}" for value in offset)
+        )
+        if any(error > limit for error, limit in zip(errors, GRASP_TOLERANCE)):
+            return False
+        self.held_package = name
+        self.held_offset = offset
+        self.held_orientation = quaternion_multiply(inverse_wrist, package_orientation)
+        return True
+
+    def update_held_package(self):
+        if self.held_package is None or self.wrist_pose is None:
+            return
+        wrist_position, wrist_orientation = self.wrist_pose
+        offset = rotate_vector(wrist_orientation, self.held_offset)
+        orientation = quaternion_multiply(wrist_orientation, self.held_orientation)
+        state = EntityState()
+        state.name = self.held_package
+        state.reference_frame = "world"
+        state.pose.position.x = wrist_position[0] + offset[0]
+        state.pose.position.y = wrist_position[1] + offset[1]
+        state.pose.position.z = wrist_position[2] + offset[2]
+        state.pose.orientation.x = orientation[0]
+        state.pose.orientation.y = orientation[1]
+        state.pose.orientation.z = orientation[2]
+        state.pose.orientation.w = orientation[3]
+        request = SetEntityState.Request()
+        request.state = state
+        self.entity_state_client.call_async(request)
 
     def package_is_in_gripper(self):
         package = self.model_poses.get(ITEMS[self.item_index][0])
@@ -418,8 +555,11 @@ class SorterNode(Node):
 
     def align_to(self, world_x, world_y, next_phase):
         target_yaw = atan2(world_y - self.pose[1], world_x - self.pose[0])
+        self.align_to_heading(target_yaw, next_phase)
+
+    def align_to_heading(self, target_yaw, next_phase, heading_tolerance=0.05):
         heading_error = wrap_angle(target_yaw - self.pose[2])
-        if abs(heading_error) <= 0.05:
+        if abs(heading_error) <= heading_tolerance:
             self.publish_velocity(0.0, 0.0)
             self.phase = next_phase
             self.phase_started = self.get_clock().now()

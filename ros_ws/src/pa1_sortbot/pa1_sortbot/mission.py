@@ -1,9 +1,9 @@
 """Task data kept independent of ROS for simple unit testing."""
 
 ITEMS = (
-    ("sample_1", -0.72, -0.65, -1.02, -0.65),
-    ("sample_2", 0.0, -0.65, -0.30, -0.65),
-    ("sample_3", 0.72, -0.65, 0.42, -0.65),
+    ("sample_1", -0.72, -0.65, -1.07, -0.645),
+    ("sample_2", 0.0, -0.65, -0.35, -0.645),
+    ("sample_3", 0.72, -0.65, 0.37, -0.645),
 )
 
 BIN_POSES = {
