@@ -1,35 +1,36 @@
-# AI-assisted Recycling Sorter
+# AIロボットによる資源分別
 
-ROS 2 Humble / Gazebo Classic demo for a small mobile robot that identifies color-coded recyclable packages with a local nearest-centroid image classifier, carries each package in a simulated virtual gripper, and places it in a category-specific bin.
+ROS 2 HumbleとGazebo Classicを使った、AI支援型の資源分別ロボットです。差動二輪ロボットが色付きパッケージをカメラで認識し、分類結果に応じた分別箱まで搬送します。
 
-The classifier is trained from the included sample CSV; it uses no API key, network service, or downloaded model. Package color is a visible marker for the category in this prototype, not a claim that color alone can identify real-world waste.
+分類には、同梱のサンプルCSVからクラスごとの重心を計算する最近傍重心分類器を使用します。APIキー、外部ネットワークサービス、ダウンロードした学習済みモデルは不要です。色はこの試作環境で分類ラベルを表す目印であり、実際のごみを色だけで判定できることを示すものではありません。
 
-## Project contents
+## 提出物・プロジェクト構成
 
-- `ros_ws/src/pa1_sortbot`: ROS 2 package, Gazebo world/model, launch file, and tests.
-- `docker-compose.yml`: course Humble image with the workspace mounted into the container.
-- `report.md`: Japanese report draft with no personal information.
-- `assignment_demo.mp4`: clean 2-minute-40-second recording of the complete Gazebo mission (H.264, 1920×990).
-- `scripts/generate_report.ps1`: Windows PowerShell script to create a PDF from the report.
+- `ros_ws/src/pa1_sortbot`：ROS 2パッケージ、Gazeboのワールド・ロボットモデル、起動ファイル、テスト
+- `report.md`：課題の概要、AIの活用方法、実行結果、制約、今後の改善をまとめた日本語レポート
+- `説明資料_PAI最終課題_MochiMomo.pdf`：検索可能な日本語PDF形式の説明資料
+- `assignment_demo.mp4`：Gazeboで3つの荷物を分別する様子を収録した2分40秒の動画（H.264、1920×990）
+- `docker-compose.yml`：授業用ROS 2 Humble環境の設定
+- `scripts/generate_report.ps1`、`scripts/generate_report.py`：PDF生成スクリプト
 
-Run the PDF generator from PowerShell before submission:
+PDFを再生成する場合は、プロジェクトのルートでPowerShellから実行します。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\generate_report.ps1
 ```
 
-It uses the course container's ReportLab installation to create a searchable Japanese PDF with the required filename pattern. The generated filename is `説明資料_PAI最終課題_MochiMomo.pdf`.
+授業用DockerコンテナのReportLabを使って、日本語テキストを検索できるPDFを生成します。出力ファイル名は`説明資料_PAI最終課題_MochiMomo.pdf`です。
 
-## Run with the course Docker image
+## Dockerでの実行方法
 
-Install and start Docker Desktop, then from this directory run:
+Docker Desktopを起動し、プロジェクトのルートで次を実行します。
 
 ```powershell
 docker compose up -d
 docker compose exec sim bash
 ```
 
-In the container terminal:
+コンテナ内でROS 2環境を読み込み、ビルド・テスト・実行します。
 
 ```bash
 source /opt/ros/humble/setup.bash
@@ -40,22 +41,26 @@ colcon test --packages-select pa1_sortbot
 ros2 launch pa1_sortbot sort_demo.launch.py
 ```
 
-Open the course desktop at `http://localhost:6080/` to watch Gazebo. The robot starts from the left, aligns its camera with each of three packages, and moves each recognized package to its matching bin. It stops just before each bin and uses Gazebo's `set_entity_state` service to place the virtual-gripped item inside. Packages are collision-free visual markers so they cannot obstruct the approach. This makes the task reproducible without a physical manipulator, but is not force-based grasping.
+`http://localhost:6080/`でコース用デスクトップを開くと、Gazeboを確認できます。ロボットは3つの荷物に順番に近づいてカメラを向け、分類後に対応する分別箱まで運びます。箱への衝突を避けるため、箱の手前で停止し、Gazeboの`set_entity_state`サービスを使って仮想的につかんだ荷物を箱の中に配置します。荷物は接近を妨げないよう衝突判定のない視覚マーカーとして扱っています。この方式は実際の把持力や接触を再現するものではありません。
 
-On CPU-constrained machines, run the same mission without the Gazebo client using `ros2 launch pa1_sortbot sort_demo.launch.py gui:=false`.
+CPU性能に制約がある場合は、Gazeboの画面を表示せずに実行できます。
 
-If the course image is not already available, Docker Compose will pull `airobotbook/ros2-desktop-ai-robot-book-humble:latest`. The first pull can take several minutes. Stop the environment with `docker compose down`.
+```bash
+ros2 launch pa1_sortbot sort_demo.launch.py gui:=false
+```
 
-## Record the assignment video
+授業用イメージがローカルにない場合、Docker Composeが`airobotbook/ros2-desktop-ai-robot-book-humble:latest`を取得します。初回の取得には数分かかる場合があります。環境を終了するには、プロジェクトのルートで`docker compose down`を実行します。
 
-The included `assignment_demo.mp4` shows the complete three-item Gazebo run in a 2-minute-40-second clip. It is captured directly from the Gazebo window without desktop overlays. The video has not been uploaded to YouTube; upload it as unlisted if a video link is required for submission. Avoid showing names, account details, email addresses, or other personal information.
+## 動画について
 
-## Local checks
+同梱の`assignment_demo.mp4`には、Gazeboで3つすべての荷物を仕分ける様子が収録されています。Gazeboウィンドウを直接録画しており、デスクトップ上の余分な表示は含みません。YouTubeへのアップロードはまだ行っていません。提出時に動画リンクが必要な場合は、YouTubeに限定公開でアップロードしてください。
 
-The classifier and movement helpers use only Python's standard library and can be tested in the course container:
+## テスト
+
+分類器と移動制御の補助関数は、コース用コンテナ内で次のようにテストできます。
 
 ```bash
 python3 -m unittest discover -s /workspace/ros_ws/src/pa1_sortbot/test -v
 ```
 
-The ROS integration test requires the course image with ROS 2 Humble and Gazebo Classic. See `report.md` for task design, AI method, limitations, and next steps.
+ROS統合テストには、ROS 2 HumbleとGazebo Classicを含むコース用イメージが必要です。課題の設計、実行結果、制約、改善案は`report.md`およびPDFの説明資料を参照してください。
