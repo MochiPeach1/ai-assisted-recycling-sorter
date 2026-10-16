@@ -2,19 +2,22 @@
 <package format="3">
   <name>pa1_sortbot</name>
   <version>0.1.0</version>
-  <description>AI-assisted mobile recycling sorter simulation for the Physical AI final assignment.</description>
+  <description>Mobile manipulator with a physical gripper for color-coded package sorting in Gazebo.</description>
   <maintainer email="project@example.invalid">Project Maintainer</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_python</buildtool_depend>
   <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>gazebo_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>nav_msgs</exec_depend>
-  <exec_depend>gazebo_msgs</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
   <test_depend>ament_pytest</test_depend>
   <export>
     <build_type>ament_python</build_type>

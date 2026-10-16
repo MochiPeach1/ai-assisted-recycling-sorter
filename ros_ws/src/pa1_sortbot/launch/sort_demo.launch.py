@@ -38,6 +38,7 @@ def generate_launch_description():
     sorter = Node(
         package="pa1_sortbot",
         executable="sorter",
+        parameters=[{"use_sim_time": True}],
         output="screen",
     )
     return LaunchDescription(

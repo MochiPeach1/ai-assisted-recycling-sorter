@@ -8,6 +8,11 @@ class ControlMathTests(unittest.TestCase):
     def test_arrival_stops_robot(self):
         self.assertEqual(drive_command((1.0, 2.0, 0.0), (1.05, 2.0)), (0.0, 0.0, True))
 
+    def test_custom_arrival_tolerance_keeps_fine_approach_moving(self):
+        command = drive_command((0.0, 0.0, 0.0), (0.02, 0.0), 0.015)
+        self.assertGreater(command[0], 0.0)
+        self.assertFalse(command[2])
+
     def test_turns_before_moving_toward_sideways_goal(self):
         linear, angular, arrived = drive_command((0.0, 0.0, 0.0), (0.0, 2.0))
         self.assertEqual(linear, 0.0)
